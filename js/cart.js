@@ -11,6 +11,14 @@
             return products[index].obj;
         };
 
+        this.getElementsCount = function () {
+            return products.length;
+        };
+
+        this.getElementCount = function (productName) {
+            return getProductByName(productName).count;
+        };
+
         this.addProduct = function (product, count) {
             if (!validateProduct(product)) {
                 console.error('Wrong product');
@@ -33,6 +41,33 @@
             //перепишите функцию добавления товаров в корзину так, чтобы после добавления товара происходило сохранение всего массива товаров в Local Storage в переменную cart.
             localStorage.setItem('cart', JSON.stringify(products));
 
+        };
+        
+        this.removeProduct = function (productName) {
+            var item = getProductByName(productName);
+            if (item) {
+                getProductByName(productName).count -= 1;
+                var lsCount = +localStorage.getItem('productCount: ' + productName);
+                localStorage.setItem('productCount: ' + productName, lsCount - 1);
+                localStorage.setItem('cart', JSON.stringify(products));
+            } else {
+                console.error('Item not found');
+            }
+        };
+
+        this.destroyProduct = function (productName) {
+            var index;
+            
+            for (var i = 0; i < products.length; i++) {
+                if (products[i].obj.name == productName) {
+                    index = i;
+                    break;
+                }
+            }
+            
+            products.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(products));
+            localStorage.removeItem('productCount: ' + productName);
         };
 
         this.getProductPrice = function (productName) {
@@ -141,14 +176,21 @@
     }
 
     function Product() {
+        
+        var productCount;
+        var totalSum;
+
+        this.setProductCount = function (count) {
+            productCount = count;
+        };
+
+        this.setTotalSum = function (sum) {
+            totalSum = sum;
+        };
 
         this.createTable = function () {
-            var table = document.createElement('table');
-
-            for(var name in this){
-                if(this[name] instanceof Function){
-                    continue;
-                }
+            
+            var rows = [];
 
                 var tr = document.createElement('tr');
                 var td = document.createElement('td');
@@ -156,7 +198,7 @@
                 var a = document.createElement('a');
                 a.setAttribute('href', '');
                 var img = document.createElement('img');
-                img.setAttribute('src',"images/cart/one.png");
+                img.setAttribute('src',this.img);
                 img.setAttribute('alt',"");
                 a.appendChild(img);
                 td.appendChild(a);
@@ -166,8 +208,8 @@
                 td.setAttribute('class', 'cart_description');
                 var h4 = document.createElement('h4');
                 var a = document.createElement('a');
-                a.setAttribute('href', '');
-                a.innerHTML = this[name];
+                a.setAttribute('href', this.name);
+                a.innerHTML = this.name;
                 h4.appendChild(a);
                 td.appendChild(h4);
                 tr.appendChild(td);
@@ -175,7 +217,7 @@
                 var td = document.createElement('td');
                 td.setAttribute('class', 'cart_price');
                 var p = document.createElement('p');
-                p.innerHTML = '$' + "50";
+                p.innerHTML = '$' + this.price;
                 td.appendChild(p);
                 tr.appendChild(td);
 
@@ -191,7 +233,7 @@
                 input.setAttribute('class', 'cart_quantity_input');
                 input.setAttribute('type', 'text');
                 input.setAttribute('name', 'quantity');
-                input.setAttribute('value', '1');
+                input.setAttribute('value', productCount);
                 input.setAttribute('autocomplete', 'off');
                 input.setAttribute('size', '2');
                 var a2 = document.createElement('a');
@@ -208,7 +250,7 @@
                 td.setAttribute('class', 'cart_total');
                 var p = document.createElement('p');
                 p.setAttribute('class', 'cart_total_price');
-                p.innerHTML = '$' + "50";
+                p.innerHTML = '$' + totalSum;
                 td.appendChild(p);
                 tr.appendChild(td);
 
@@ -222,21 +264,8 @@
                 a.appendChild(i);
                 td.appendChild(a);
                 tr.appendChild(td);
-
-                // p.innerHTML = '$' + this[price];
-                // td.appendChild(p);
-                // tr.appendChild(td);
-                //
-                //
-                // p.innerHTML = '$' + this[price];
-                // td.appendChild(p);
-                // tr.appendChild(td);
-                //
-                // td = document.createElement('td');
-                // td.innerHTML = this[name];
-                // tr.appendChild(td);
-
-                table.appendChild(tr)
+                
+                rows.push(tr);
 
 
 
@@ -264,9 +293,9 @@
                 //     <td class="cart_delete">
                 //     <a class="cart_quantity_delete" href=""><i class="fa fa-times"></i></a>
                 //     </td>
-            }
+            // }
 
-            return table;
+            return rows;
 
         };
 
